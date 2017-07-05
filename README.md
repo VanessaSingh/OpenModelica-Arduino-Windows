@@ -1,5 +1,5 @@
 # OpenModelica-Arduino-Windows
-Free library for interfacing Arduino using Modelica and Modelica_DeviceDrivers models.
+Free library for interfacing Arduino using Modelica and Modelica_DeviceDrivers models in Windows.
 There is support for serial port.
 
 ## Library description
@@ -10,7 +10,7 @@ Main features:
   * (Soft) real-time synchronization of a simulation.
   
 Please note that the library is known to work with
-* OpenModelica (partial support starting with OpenModelica v1.11.0 Beta 1, e.g.serial port).
+* OpenModelica (partial support starting with OpenModelica v1.11.0, e.g.serial port).
 
 ## Development and contribution
 Main developers:
