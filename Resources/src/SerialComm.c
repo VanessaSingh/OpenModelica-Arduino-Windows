@@ -146,7 +146,7 @@ __declspec (dllexport) __stdcall int read_serial(int handle,char buf[],int size)
 //Function to provide delay
 __declspec (dllexport) __stdcall void delay(long int t)
 { 
-    sleep(abs(t/1000));
+    Sleep(abs(t));
     return ;
 }
 
@@ -286,7 +286,7 @@ __declspec (dllexport) __stdcall void cmd_servo_move(int h,int servo_no,int u1)
     if (u1<0)
     {
         sprintf(servo,"%c",48+servo_no);
-        sprintf(v,"%c",48+0);
+        sprintf(v,"%c",0);
         strcat(pin,servo);
         strcat(pin,v);
           //pin="Sw"+ascii(48+servo_no)+ascii(0);
@@ -294,14 +294,14 @@ __declspec (dllexport) __stdcall void cmd_servo_move(int h,int servo_no,int u1)
     else if(u1>180)
     {
         sprintf(servo,"%c",48+servo_no);
-        sprintf(v,"%c",48+180);
+        sprintf(v,"%c",180);
         strcat(pin,servo);
         strcat(pin,v);
     }      //pin="Sw"+ascii(48+servo_no)+ascii(180);
     else
     {
         sprintf(servo,"%c",48+servo_no);
-        sprintf(v,"%c",48+(unsigned int)u1);
+        sprintf(v,"%c",(uint8_t)u1);
         strcat(pin,servo);
         strcat(pin,v);
     }      //pin="Sw"+ascii(48+servo_no)+ascii(uint8(u1));
