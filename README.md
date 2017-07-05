@@ -21,4 +21,4 @@ Main developers:
 Contributions in shape of [Pull Requests] are always welcome.
 
 The following people have directly contributed to the implementation of the library (many more have contributed by providing feedback and suggestions):
-* Manas Ranjan Das,bug fixes,error removal etc. 
+* Manas Ranjan Das (project mentor), contribution in bug fixes,error removal etc. 
