@@ -1,8 +1,8 @@
 package Arduino
-  extends Modelica_DeviceDrivers.Utilities.Icons.GenericICPackage;
+  extends Arduino.SerialCommunication.Icons.GenericICPackage;
 
   package SerialCommunication "Serial Communication Package for Arduino"
-    extends Modelica_DeviceDrivers.Utilities.Icons.FunctionLayerIcon;
+    extends Arduino.SerialCommunication.Icons.FunctionLayerIcon;
     import ModelicaReference.Operators;
 
     package Functions
@@ -1705,6 +1705,58 @@ Arduino.SerialCommunication.Functions.<b>ieeesingle2num</b>(hexa);
       extends Modelica.Icons.TypesPackage;
       type Servo_no = enumeration('1' "Servo1", '2' "Servo2") "Servo ID";
     end Types;
+
+    package Icons "Collection of icons used for library components"
+  extends Modelica.Icons.IconsPackage;
+  
+  partial package GenericICPackage "Icon with a generic IC"
+  annotation(Icon(coordinateSystem(preserveAspectRatio = true, extent = {{-100, -100}, {100, 100}}), graphics = {Bitmap(extent = {{-95, -95}, {95, 95}}, fileName = "Resources/Images/Icons/tqfp32.png", rotation = 0)}), Documentation(info = "<html>
+<p>
+This partial class is intended to design a <em>default icon for microcontrollers</em>.
+</p>
+</html>"));
+end GenericICPackage;
+
+
+
+partial block GenericIC "Icon with a generic IC"
+  annotation(Icon(coordinateSystem(preserveAspectRatio = true, extent = {{-100, -100}, {100, 100}}), graphics = {Bitmap(extent = {{-95, -95}, {95, 95}}, fileName = "Resources/Images/Icons/tqfp32.png", rotation = 0)}), Documentation(info = "<html>
+<p>
+This partial class is intended to design a <em>default icon for microcontrollers</em>.
+</p>
+</html>"));
+end GenericIC;
+
+
+
+partial package FunctionLayerIcon
+  "Icon for packages that represent the function layer"
+  extends Modelica.Icons.Package;
+
+  annotation (Icon(coordinateSystem(preserveAspectRatio=false, extent={{-100,-100},{100,100}}), graphics={
+        Text(
+          lineColor={128,128,128},
+          extent={{-90,-90},{90,90}},
+          textString="f"),
+        Ellipse(
+          lineColor={128,128,128},
+          extent={{-80,-80},{80,80}})}),
+Documentation(info="<html>
+<p>This icon indicates Modelica functions.</p>
+</html>"));
+end FunctionLayerIcon;
+
+
+  annotation (
+    preferredView="info",
+    Documentation(
+      info="<html>
+<p>
+A collection of basic icons to be used for different elements of the library.
+</p>
+</html>"));
+end Icons;
+
     annotation(
       Documentation(info = "<html>
 <h4>Description</h4>
