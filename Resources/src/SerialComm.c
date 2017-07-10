@@ -22,6 +22,7 @@ Alain Caignot
 #include <Windows.h>
 #include <fcntl.h>
 #include <math.h>
+#include <ctype.h>
 #include <stdint.h>
 #include "../include/serial.h"
 
@@ -446,8 +447,8 @@ __declspec (dllexport) __stdcall void cmd_dcmotor_release(int h,int motor_no)
     wr=write_serial(h,code_sent,3);
 }
 
-//MODBUS
-/*
+//***********************************MODBUS***********************************************************//
+
 __declspec (dllexport) __stdcall long int hex2dec(char hexadecimal[])
 {
     long int decimalNumber=0;
@@ -470,24 +471,23 @@ __declspec (dllexport) __stdcall long int hex2dec(char hexadecimal[])
     return decimalNumber;
 }
 
-__declspec (dllexport) __stdcall char *dec2hex(long int decimalnum)
+__declspec (dllexport) __stdcall void dec2hex(long int decimalnum,char hexadecimalnum[])
 {
     long quotient, remainder;
-    int j = 0;
-    char hexadecimalnum[100];
- 
+    int j = 1;
     quotient = decimalnum;
  
     while (quotient != 0)
-    {
+    {	
         remainder = quotient % 16;
         if (remainder < 10)
-            hexadecimalnum[j++] = 48 + remainder;
+            hexadecimalnum[j--] = 48 + remainder;
         else
-            hexadecimalnum[j++] = 55 + remainder;
+            hexadecimalnum[j--] = 55 + remainder;
         quotient = quotient / 16;
     }
-    return hexadecimalnum;
+	hexadecimalnum[2]='\0';
+	
 }
 
 __declspec (dllexport) __stdcall double ieeesingle2num(char hexa[])
@@ -526,341 +526,449 @@ __declspec (dllexport) __stdcall char ascii_n(int num)
 
 __declspec (dllexport) __stdcall int ascii_c(char c)
 {
-    return (int)c;
+    return (uint8_t)c;
 }
 
-__declspec (dllexport) __stdcall double read_val(int addr_byte)
-{   
-    int h=open_serial(1,0,9600);
-    char array1[20];
-    if(addr_byte==86)
-    {   
-        char arr[8]={ascii_n(1),ascii_n(3),ascii_n(15),ascii_n(86),ascii_n(00),ascii_n(2),ascii_n(39),ascii_n(15)};
-        int j;
-        for (j = 0; j < 8; ++j)
-        {
-            strcat(array1,arr[j]);
-        }
-        printf("Voltage(in V)=");
-    }
-    else if(addr_byte==88)
-    {   
-        char arr[8]={ascii_n(1),ascii_n(3),ascii_n(15),ascii_n(88),ascii_n(00),ascii_n(2),ascii_n(70),ascii_n(204)};
-        int j;
-        for (j = 0; j < 8; ++j)
-        {
-            strcat(array1,arr[j]);
-        }
-        printf("Current(in A)=");
-    }
-    else if(addr_byte==78)
-    {   
-        char arr[8]={ascii_n(1),ascii_n(3),ascii_n(15),ascii_n(78),ascii_n(00),ascii_n(2),ascii_n(167),ascii_n(8)};
-        int j;
-        for (j = 0; j < 8; ++j)
-        {
-            strcat(array1,arr[j]);
-        }
-        printf("Active Power(in W)=");
-    }
-
-    int wr=write_serial(1,array1,8);
-    char buf[12];
-    int rd=read_serial(1,buf,11);
-    int b1=0,b2=0,b3=0,b4=0;
-    int myresult[12];
-    int i;
-    for (i = 0; i < 11; ++i)
-    {
-        myresult[i]=ascii_c(buf[i]);
-    }
-    
-    int a1=myresult[5];
-    if (a1<16)
-    {
-        b1=1;
-    }
-    char* v1=dec2hex(a1);
-    if (b1)
-    {
-        strcat("0",v1);
-    }
-
-    int a2=myresult[6];
-    if (a2<16)
-    {
-        b2=1;
-    }
-    char* v2=dec2hex(a2);
-    if (b2)
-    {
-        strcat("0",v2);
-    }
-
-    int a3=myresult[7];
-    if (a3<16)
-    {
-        b3=1;
-    }
-    char* v3=dec2hex(a3);
-    if (b3)
-    {
-        strcat("0",v3);
-    }
-
-    int a4=myresult[8];
-    if (a4<16)
-    {
-        b4=1;
-    }
-    char* v4=dec2hex(a4);
-    if (b4)
-    {
-        strcat("0",v4);
-    }
-    char* a5[4]={v3,v4,v1,v2};
-    char a6[100];
-    for (i = 0; i < 4; ++i)
-    {
-        strcat(a6,a5[i]);   
-    }
-    int cl=close_serial(1);
-    double p=ieeesingle2num(a6);
-    printf("%f",p);
-    return p;
-}
 
 __declspec (dllexport) __stdcall void read_voltage()
 {
-    int h=open_serial(1,0,9600);
-    char acc[10];
-    char arr[8]={ascii_n(1),ascii_n(3),ascii_n(15),ascii_n(86),ascii_n(00),ascii_n(2),ascii_n(39),ascii_n(15)};
-    int j;
-    for (j = 0; j < 8; ++j)
-    {
-        strcat(acc,arr[j]);
-    }
-    //printf("%s\n",acc );
-    int wr=write_serial(1,arr,8);
+    int h=open_serial(1,2,9600);
+	
+	//printf("Serial port opened ...");//debug
+    
+	char arr[9]={ascii_n(1),ascii_n(3),ascii_n(15),ascii_n(86),ascii_n(00),ascii_n(2),ascii_n(39),ascii_n(15),'\0'};
+	
+	//printf("%s\n",arr);//debug
+    
+	int x,wr,rd;
     char buf[12];
-    int rd = read_serial(1,buf,11);
-    int b1=0,b2=0,b3=0,b4=0;
+    for(x=0;x<5;x++)
+    {
+        wr=write_serial(1,arr,8);
+        rd = read_serial(1,buf,11);
+		Sleep(500);
+	}
+	buf[11]='\0';
+    
+	//printf("%s\n",buf );//debug
+    
+	int b1=0,b2=0,b3=0,b4=0;
     int myresult[12];
     int i;
     for (i = 0; i < 11; ++i)
     {
         myresult[i]=ascii_c(buf[i]);
+		//printf("%d",myresult[i]);//debug
     }
     
-    int a1=myresult[5];
+	//printf("%d %d %d %d\n",myresult[4],myresult[5],myresult[6],myresult[7]);//debug
+    
+	int a1=myresult[4];
     if (a1<16)
     {
         b1=1;
     }
-    char* v1=dec2hex(a1);
+    char v1[3];
+	dec2hex(a1,v1);
     if (b1)
     {
-        strcat("0",v1);
+        sprintf(v1,"0%s",v1);
     }
-
-    int a2=myresult[6];
+	else
+	{
+		sprintf(v1,"%s",v1);
+	}	
+    int a2=myresult[5];
     if (a2<16)
     {
         b2=1;
     }
-    char* v2=dec2hex(a2);
+    char v2[3];
+	dec2hex(a2,v2);
     if (b2)
     {
-        strcat("0",v2);
+        sprintf(v2,"0%s",v2);
     }
-
-    int a3=myresult[7];
+	else
+	{
+		sprintf(v2,"%s",v2);
+	}
+    int a3=myresult[6];
     if (a3<16)
     {
         b3=1;
     }
-    char* v3=dec2hex(a3);
+    char v3[3];
+	dec2hex(a3,v3);
     if (b3)
     {
-        strcat("0",v3);
+        sprintf(v3,"0%s",v3);
     }
-
-    int a4=myresult[8];
+	else
+	{
+		sprintf(v3,"%s",v3);
+	}
+    int a4=myresult[7];
     if (a4<16)
     {
         b4=1;
     }
-    char* v4=dec2hex(a4);
+    char v4[3];
+	dec2hex(a4,v4);
     if (b4)
     {
-        strcat("0",v4);
+        sprintf(v4,"0%s",v4);
     }
-    char* a5[4]={v3,v4,v1,v2};
-    char a6[100];
-    for (i = 0; i < 4; ++i)
-    {
-        strcat(a6,a5[i]);   
-    }
+	else
+	{
+		sprintf(v4,"%s",v4);
+	}	
+    char a6[20]="";
+	strcat(a6,v3);
+	strcat(a6,v4);
+	strcat(a6,v1);
+	strcat(a6,v2);
+	a6[8]='\0';
+	
+	//printf("%s",a6);//debug
+	
     int cl=close_serial(1);
     double p=ieeesingle2num(a6);
-    printf("Voltage(in V)=%f",p);
+    printf("Voltage(in V)=%f\n",p);
 }
 
 
 __declspec (dllexport) __stdcall void read_current()
 {
-    int h=open_serial(1,0,9600);
-    char acc[100];
-    char arr[8]={ascii_n(1),ascii_n(3),ascii_n(15),ascii_n(88),ascii_n(00),ascii_n(2),ascii_n(70),ascii_n(204)};
-    int j;
-    for (j = 0; j < 8; ++j)
-    {
-        strcat(acc,arr[j]);
-    }
-        //printf("%s\n",acc );
-    int wr=write_serial(1,arr,8);
+    int h=open_serial(1,2,9600);
+    char arr[9]={ascii_n(1),ascii_n(3),ascii_n(15),ascii_n(88),ascii_n(00),ascii_n(2),ascii_n(70),ascii_n(204),'\0'};
+	
+	//printf("%s\n",arr);//debug
+    
+	int x,wr,rd;
     char buf[12];
-    int rd=read_serial(1,buf,11);
-    int b1=0,b2=0,b3=0,b4=0;
+    for(x=0;x<5;x++)
+    {
+        wr=write_serial(1,arr,8);
+        rd = read_serial(1,buf,11);
+		Sleep(500);
+	}
+	buf[11]='\0';
+    
+	//printf("%s\n",buf );//debug
+    
+	int b1=0,b2=0,b3=0,b4=0;
     int myresult[12];
     int i;
     for (i = 0; i < 11; ++i)
     {
         myresult[i]=ascii_c(buf[i]);
+		//printf("%d",myresult[i]);//debug
     }
-
-    int a1=myresult[5];
+    
+	//printf("%d %d %d %d\n",myresult[4],myresult[5],myresult[6],myresult[7]);//debug
+    
+	int a1=myresult[4];
     if (a1<16)
     {
         b1=1;
     }
-    char* v1=dec2hex(a1);
+    char v1[3];
+	dec2hex(a1,v1);
     if (b1)
     {
-        strcat("0",v1);
+        sprintf(v1,"0%s",v1);
     }
-
-    int a2=myresult[6];
+	else
+	{
+		sprintf(v1,"%s",v1);
+	}	
+    int a2=myresult[5];
     if (a2<16)
     {
         b2=1;
     }
-    char* v2=dec2hex(a2);
+    char v2[3];
+	dec2hex(a2,v2);
     if (b2)
     {
-        strcat("0",v2);
+        sprintf(v2,"0%s",v2);
     }
-
-    int a3=myresult[7];
+	else
+	{
+		sprintf(v2,"%s",v2);
+	}
+    int a3=myresult[6];
     if (a3<16)
     {
         b3=1;
     }
-    char* v3=dec2hex(a3);
+    char v3[3];
+	dec2hex(a3,v3);
     if (b3)
     {
-        strcat("0",v3);
+        sprintf(v3,"0%s",v3);
     }
-
-    int a4=myresult[8];
+	else
+	{
+		sprintf(v3,"%s",v3);
+	}
+    int a4=myresult[7];
     if (a4<16)
     {
         b4=1;
     }
-    char* v4=dec2hex(a4);
+    char v4[3];
+	dec2hex(a4,v4);
     if (b4)
     {
-        strcat("0",v4);
+        sprintf(v4,"0%s",v4);
     }
-    char* a5[4]={v3,v4,v1,v2};
-    char a6[100];
-    for (i = 0; i < 4; ++i)
-    {
-        strcat(a6,a5[i]);   
-    }
+	else
+	{
+		sprintf(v4,"%s",v4);
+	}	
+    char a6[20]="";
+	strcat(a6,v3);
+	strcat(a6,v4);
+	strcat(a6,v1);
+	strcat(a6,v2);
+	a6[8]='\0';
+	
+	//printf("%s",a6);//debug
+	
     int cl=close_serial(1);
     double p=ieeesingle2num(a6);
-    printf("Current(in A)=%f",p);
+	printf("Current(in A)=%f\n",p);
 }
 
 __declspec (dllexport) __stdcall void read_active_power()
 {
-    int h=open_serial(1,0,9600);
-    char acc[100];
-    char arr[8]={ascii_n(1),ascii_n(3),ascii_n(15),ascii_n(78),ascii_n(00),ascii_n(2),ascii_n(167),ascii_n(8)};
-    int j;
-    for (j = 0; j < 8; ++j)
-    {
-        strcat(acc,arr[j]);
-    }
-        //printf("%s\n",acc );
-    int wr=write_serial(1,arr,8);
+    int h=open_serial(1,2,9600);
+    char arr[9]={ascii_n(1),ascii_n(3),ascii_n(15),ascii_n(78),ascii_n(00),ascii_n(2),ascii_n(167),ascii_n(8),'\0'};
+	
+	//printf("%s\n",arr);//debug
+    
+	int x,wr,rd;
     char buf[12];
-    int rd=read_serial(1,buf,11);
-    int b1=0,b2=0,b3=0,b4=0;
+    for(x=0;x<5;x++)
+    {
+        wr=write_serial(1,arr,8);
+        rd = read_serial(1,buf,11);
+		Sleep(500);
+	}
+	buf[11]='\0';
+    
+	//printf("%s\n",buf );//debug
+    
+	int b1=0,b2=0,b3=0,b4=0;
     int myresult[12];
     int i;
     for (i = 0; i < 11; ++i)
     {
         myresult[i]=ascii_c(buf[i]);
+		//printf("%d",myresult[i]);//debug
     }
     
-    int a1=myresult[5];
+	//printf("%d %d %d %d\n",myresult[4],myresult[5],myresult[6],myresult[7]);//debug
+    
+	int a1=myresult[4];
     if (a1<16)
     {
         b1=1;
     }
-    char* v1=dec2hex(a1);
+    char v1[3];
+	dec2hex(a1,v1);
     if (b1)
     {
-        strcat("0",v1);
+        sprintf(v1,"0%s",v1);
     }
-
-    int a2=myresult[6];
+	else
+	{
+		sprintf(v1,"%s",v1);
+	}	
+    int a2=myresult[5];
     if (a2<16)
     {
         b2=1;
     }
-    char* v2=dec2hex(a2);
+    char v2[3];
+	dec2hex(a2,v2);
     if (b2)
     {
-        strcat("0",v2);
+        sprintf(v2,"0%s",v2);
     }
-
-    int a3=myresult[7];
+	else
+	{
+		sprintf(v2,"%s",v2);
+	}
+    int a3=myresult[6];
     if (a3<16)
     {
         b3=1;
     }
-    char* v3=dec2hex(a3);
+    char v3[3];
+	dec2hex(a3,v3);
     if (b3)
     {
-        strcat("0",v3);
+        sprintf(v3,"0%s",v3);
     }
-
-    int a4=myresult[8];
+	else
+	{
+		sprintf(v3,"%s",v3);
+	}
+    int a4=myresult[7];
     if (a4<16)
     {
         b4=1;
     }
-    char* v4=dec2hex(a4);
+    char v4[3];
+	dec2hex(a4,v4);
     if (b4)
     {
-        strcat("0",v4);
+        sprintf(v4,"0%s",v4);
     }
-    char* a5[4]={v3,v4,v1,v2};
-    char a6[100];
-    for (i = 0; i < 4; ++i)
-    {
-        strcat(a6,a5[i]);   
-    }
+	else
+	{
+		sprintf(v4,"%s",v4);
+	}	
+    char a6[20]="";
+	strcat(a6,v3);
+	strcat(a6,v4);
+	strcat(a6,v1);
+	strcat(a6,v2);
+	a6[8]='\0';
+	
+	//printf("%s",a6);//debug
+	
     int cl=close_serial(1);
     double p=ieeesingle2num(a6);
-    printf("Active Power(in W)=%f",p);
+	printf("Active Power(in W)=%f\n",p);
 }
-*/
+
+__declspec (dllexport) __stdcall double read_val(int addr_byte)
+{   
+    int h=open_serial(1,2,9600);
+    char* arr;
+    if(addr_byte==86)
+    {   
+        char code[9]={ascii_n(1),ascii_n(3),ascii_n(15),ascii_n(86),ascii_n(00),ascii_n(2),ascii_n(39),ascii_n(15),'\0'};
+        arr = code;
+        printf("Voltage(in V)=");
+    }
+    else if(addr_byte==88)
+    {   
+        char code[9]={ascii_n(1),ascii_n(3),ascii_n(15),ascii_n(88),ascii_n(00),ascii_n(2),ascii_n(70),ascii_n(204),'\0'};
+        arr =code;
+        printf("Current(in A)=");
+    }
+    else if(addr_byte==78)
+    {   
+        char code[9]={ascii_n(1),ascii_n(3),ascii_n(15),ascii_n(78),ascii_n(00),ascii_n(2),ascii_n(167),ascii_n(8),'\0'};
+        arr = code;
+        printf("Active Power(in W)=");
+    }
+    
+	int x,wr,rd;
+    char buf[12];
+    for(x=0;x<5;x++)
+    {
+        wr=write_serial(1,arr,8);
+        rd = read_serial(1,buf,11);
+		Sleep(500);
+	}
+	buf[11]='\0';
+    
+	//printf("%s\n",buf );//debug
+    
+	int b1=0,b2=0,b3=0,b4=0;
+    int myresult[12];
+    int i;
+    for (i = 0; i < 11; ++i)
+    {
+        myresult[i]=ascii_c(buf[i]);
+		//printf("%d",myresult[i]);//debug
+    }
+    
+	//printf("%d %d %d %d\n",myresult[4],myresult[5],myresult[6],myresult[7]);//debug
+    
+	int a1=myresult[4];
+    if (a1<16)
+    {
+        b1=1;
+    }
+    char v1[3];
+	dec2hex(a1,v1);
+    if (b1)
+    {
+        sprintf(v1,"0%s",v1);
+    }
+	else
+	{
+		sprintf(v1,"%s",v1);
+	}	
+    int a2=myresult[5];
+    if (a2<16)
+    {
+        b2=1;
+    }
+    char v2[3];
+	dec2hex(a2,v2);
+    if (b2)
+    {
+        sprintf(v2,"0%s",v2);
+    }
+	else
+	{
+		sprintf(v2,"%s",v2);
+	}
+    int a3=myresult[6];
+    if (a3<16)
+    {
+        b3=1;
+    }
+    char v3[3];
+	dec2hex(a3,v3);
+    if (b3)
+    {
+        sprintf(v3,"0%s",v3);
+    }
+	else
+	{
+		sprintf(v3,"%s",v3);
+	}
+    int a4=myresult[7];
+    if (a4<16)
+    {
+        b4=1;
+    }
+    char v4[3];
+	dec2hex(a4,v4);
+    if (b4)
+    {
+        sprintf(v4,"0%s",v4);
+    }
+	else
+	{
+		sprintf(v4,"%s",v4);
+	}	
+    char a6[20]="";
+	strcat(a6,v3);
+	strcat(a6,v4);
+	strcat(a6,v1);
+	strcat(a6,v2);
+	a6[8]='\0';
+	
+	//printf("%s",a6);//debug
+	
+    int cl=close_serial(1);
+    double p=ieeesingle2num(a6);
+	printf("%f\n",p);
+    return p;
+}
+
 //Analog reading in volts
-/*__declspec (dllexport) __stdcall uint16_t cmd_analog_in_volt(int h,int pin_no)
+__declspec (dllexport) __stdcall uint16_t cmd_analog_in_volt(int h,int pin_no)
 {   
     char pin[5],v1[2];
     int stat;
@@ -876,7 +984,7 @@ __declspec (dllexport) __stdcall void read_active_power()
     char values[5];
     int a_rd=read_serial(h,values,2);
     values[2]='\0';
-    printf("%s\n",values);
+    //printf("%s\n",values);
     int l=strlen(values);
     //printf("%d\n",l );
     uint8_t temp[l+1];
@@ -885,10 +993,10 @@ __declspec (dllexport) __stdcall void read_active_power()
     {
         temp[i]=(uint8_t)(values[i]);
     }
-    printf("%u %u\n",temp[0],temp[1]);
+    //printf("%u %u\n",temp[0],temp[1]);
     uint16_t result=(uint16_t)(256*temp[1]+temp[0]);
     result/=1023;
-    printf("%u\n",result);
+    //printf("%u\n",result);
     return result;
 }
 
@@ -900,14 +1008,14 @@ __declspec (dllexport) __stdcall int cmd_analog_out_volt(int h,int pin_no,double
     else if(val < 0)
         val = 0;
     val=val*255/5;
-    printf("%f\n",val);
+    //printf("%f\n",val);
     char code_sent[10];
     strcpy(code_sent,"W");
     sprintf(v1,"%c",pin_no+48);
     sprintf(v2,"%c",abs(ceil(val)));
     strcat(code_sent,v1);
     strcat(code_sent,v2);
-    printf("%s\n",code_sent);
+    //printf("%s\n",code_sent);
     return write_serial(h,code_sent,3);
 
-}*/
+}
