@@ -1076,7 +1076,7 @@ Arduino.SerialCommunication.Functions.<b>ieeesingle2num</b>(hexa);
         function read_current
           extends Modelica.Icons.Function;
         
-          external read_voltage() annotation(
+          external read_current() annotation(
             Library = "SerialComm");
           annotation(
             Documentation(info = "<html>
@@ -1089,6 +1089,7 @@ Arduino.SerialCommunication.Functions.<b>ieeesingle2num</b>(hexa);
         </p>
         </html>"));
         end read_current;
+
 
         function read_val
           extends Modelica.Icons.Function;
@@ -1130,13 +1131,25 @@ Arduino.SerialCommunication.Functions.<b>ieeesingle2num</b>(hexa);
           extends Modelica.Icons.Example;
           import sComm = Arduino.SerialCommunication.Functions;
           import modbus = Arduino.SerialCommunication.Examples.modbus;
-          Integer ok(fixed = false);
-          Integer c_ok(fixed = false);
+          //Integer ok(fixed = false);
+          //Integer c_ok(fixed = false);
         algorithm
           when initial() then
+            //ok:=sComm.open_serial(1,2,9600);
             modbus.read_voltage();
+            modbus.read_current();
+            modbus.read_active_power();
+            sComm.delay(2000);
+            //c_ok:=sComm.close_serial(1);  
           end when;
         end modbus_test;
+
+
+
+
+
+
+
       end modbus;
     end Examples;
 
