@@ -2,7 +2,7 @@
 
 #define fmi2TypesPlatform "default" /* Compatible */
 
-typedef struct MDD_ldr_read_fmi2Component_s* fmi2Component;
+typedef struct MDD_therm_read_fmi2Component_s* fmi2Component;
 typedef void* fmi2ComponentEnvironment;    /* Pointer to FMU environment    */
 typedef void* fmi2FMUstate;                /* Pointer to internal FMU state */
 typedef unsigned int fmi2ValueReference;
@@ -29,7 +29,7 @@ void ModelicaFormatMessage(const char *fmt, ...)
   va_end(args);
 }
 
-typedef struct MDD_ldr_read_fmi2Component_s {
+typedef struct MDD_therm_read_fmi2Component_s {
   fmi2Real currentTime;
   fmi2Real fmi2RealVars[2];
   fmi2Real fmi2RealParameter[1];
@@ -37,9 +37,9 @@ typedef struct MDD_ldr_read_fmi2Component_s {
   fmi2Boolean fmi2BooleanParameter[1];
   fmi2String fmi2StringParameter[1];
   void* extObjs[3];
-} MDD_ldr_read_fmi2Component;
+} MDD_therm_read_fmi2Component;
 
-MDD_ldr_read_fmi2Component MDD_ldr_read_component = {
+MDD_therm_read_fmi2Component MDD_therm_read_component = {
   .fmi2RealVars = {
     0.0 /*adc._y*/,
     0.0 /*realValue1._number*/,
@@ -118,21 +118,21 @@ static inline void Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Timers_
   MDD_avr_timer_close(om_timer);
 }
 
-fmi2Component MDD_ldr_read_fmi2Instantiate(fmi2String name, fmi2Type ty, fmi2String GUID, fmi2String resources, const fmi2CallbackFunctions* functions, fmi2Boolean visible, fmi2Boolean loggingOn)
+fmi2Component MDD_therm_read_fmi2Instantiate(fmi2String name, fmi2Type ty, fmi2String GUID, fmi2String resources, const fmi2CallbackFunctions* functions, fmi2Boolean visible, fmi2Boolean loggingOn)
 {
   static int initDone=0;
   if (initDone) {
     return NULL;
   }
-  return &MDD_ldr_read_component;
+  return &MDD_therm_read_component;
 }
 
-fmi2Status MDD_ldr_read_fmi2SetupExperiment(fmi2Component comp, fmi2Boolean toleranceDefined, fmi2Real tolerance, fmi2Real startTime, fmi2Boolean stopTimeDefined, fmi2Real stopTime)
+fmi2Status MDD_therm_read_fmi2SetupExperiment(fmi2Component comp, fmi2Boolean toleranceDefined, fmi2Real tolerance, fmi2Real startTime, fmi2Boolean stopTimeDefined, fmi2Real stopTime)
 {
   return fmi2OK;
 }
 
-fmi2Status MDD_ldr_read_fmi2EnterInitializationMode(fmi2Component comp)
+fmi2Status MDD_therm_read_fmi2EnterInitializationMode(fmi2Component comp)
 {
   comp->extObjs[0] /* adc._analog EXTOBJ: Modelica_DeviceDrivers.EmbeddedTargets.AVR.Functions.Analog.Init */ = Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Analog_Init_constructor(comp, 7, 4);
   comp->extObjs[1] /* synchronizeRealtime1._clock EXTOBJ: Modelica_DeviceDrivers.EmbeddedTargets.AVR.Functions.Timers.Timer */ = Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Timers_Timer_constructor(comp, 1, 4, fmi2False);
@@ -140,25 +140,25 @@ fmi2Status MDD_ldr_read_fmi2EnterInitializationMode(fmi2Component comp)
   return fmi2OK;
 }
 
-fmi2Status MDD_ldr_read_fmi2ExitInitializationMode(fmi2Component comp)
+fmi2Status MDD_therm_read_fmi2ExitInitializationMode(fmi2Component comp)
 {
   return fmi2OK;
 }
 
-static fmi2Status MDD_ldr_read_functionODE(fmi2Component comp)
+static fmi2Status MDD_therm_read_functionODE(fmi2Component comp)
 {
 }
 
-static fmi2Status MDD_ldr_read_functionOutputs(fmi2Component comp)
+static fmi2Status MDD_therm_read_functionOutputs(fmi2Component comp)
 {
-  comp->fmi2RealVars[0] /* adc._y variable */ = Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Analog_read__voltage(comp, 6, 1024.0, 10); /* equation 4 */Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_RealTimeSynchronization_wait(comp, comp->extObjs[2] /* synchronizeRealtime1._sync EXTOBJ: Modelica_DeviceDrivers.EmbeddedTargets.AVR.Functions.RealTimeSynchronization.Init */);
+  comp->fmi2RealVars[0] /* adc._y variable */ = Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Analog_read__voltage(comp, 5, 1024.0, 10); /* equation 4 */Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_RealTimeSynchronization_wait(comp, comp->extObjs[2] /* synchronizeRealtime1._sync EXTOBJ: Modelica_DeviceDrivers.EmbeddedTargets.AVR.Functions.RealTimeSynchronization.Init */);
 }
 
-fmi2Status MDD_ldr_read_fmi2DoStep(fmi2Component comp, fmi2Real currentCommunicationPoint, fmi2Real communicationStepSize, fmi2Boolean noSetFMUStatePriorToCurrentPoint)
+fmi2Status MDD_therm_read_fmi2DoStep(fmi2Component comp, fmi2Real currentCommunicationPoint, fmi2Real communicationStepSize, fmi2Boolean noSetFMUStatePriorToCurrentPoint)
 {
   comp->currentTime = currentCommunicationPoint;
   /* TODO: Calculate time/state-dependent variables here... */
-  MDD_ldr_read_functionOutputs(comp);
+  MDD_therm_read_functionOutputs(comp);
   return fmi2OK;
 }
 
@@ -174,14 +174,14 @@ int main(int argc, char **argv)
   .componentEnvironment = NULL
   };
 
-  fmi2Component comp = MDD_ldr_read_fmi2Instantiate("", fmi2CoSimulation, "", "", &cbf, fmi2False, fmi2False);
+  fmi2Component comp = MDD_therm_read_fmi2Instantiate("", fmi2CoSimulation, "", "", &cbf, fmi2False, fmi2False);
   if (comp==NULL) {
     return 1;
   }
-  MDD_ldr_read_fmi2SetupExperiment(comp, fmi2False, 0.0, 0.0, fmi2False, 1.0);
-  MDD_ldr_read_fmi2EnterInitializationMode(comp);
+  MDD_therm_read_fmi2SetupExperiment(comp, fmi2False, 0.0, 0.0, fmi2False, 1.0);
+  MDD_therm_read_fmi2EnterInitializationMode(comp);
   // Set start-values? Nah...
-  MDD_ldr_read_fmi2ExitInitializationMode(comp);
+  MDD_therm_read_fmi2ExitInitializationMode(comp);
   
   double currentTime = 0.0;
   double h = 0.002;
@@ -194,7 +194,7 @@ int main(int argc, char **argv)
       // fmi2SetReal(m, ..., 1, &y2);
   
     //call slave and check status
-    status = MDD_ldr_read_fmi2DoStep(comp, currentTime, h, fmi2True);
+    status = MDD_therm_read_fmi2DoStep(comp, currentTime, h, fmi2True);
     switch (status) {
       case fmi2Discard:
       case fmi2Error:
