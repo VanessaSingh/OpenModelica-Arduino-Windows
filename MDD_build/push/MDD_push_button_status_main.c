@@ -2,7 +2,7 @@
 
 #define fmi2TypesPlatform "default" /* Compatible */
 
-typedef struct MDD_led_push_button_fmi2Component_s* fmi2Component;
+typedef struct MDD_push_button_status_fmi2Component_s* fmi2Component;
 typedef void* fmi2ComponentEnvironment;    /* Pointer to FMU environment    */
 typedef void* fmi2FMUstate;                /* Pointer to internal FMU state */
 typedef unsigned int fmi2ValueReference;
@@ -29,21 +29,24 @@ void ModelicaFormatMessage(const char *fmt, ...)
   va_end(args);
 }
 
-typedef struct MDD_led_push_button_fmi2Component_s {
+typedef struct MDD_push_button_status_fmi2Component_s {
   fmi2Real currentTime;
-  fmi2Boolean fmi2BooleanVars[3];
+  fmi2Boolean fmi2BooleanVars[2];
   fmi2Real fmi2RealParameter[1];
-  void* extObjs[4];
-} MDD_led_push_button_fmi2Component;
+  fmi2Boolean fmi2BooleanParameter[1];
+  void* extObjs[3];
+} MDD_push_button_status_fmi2Component;
 
-MDD_led_push_button_fmi2Component MDD_led_push_button_component = {
+MDD_push_button_status_fmi2Component MDD_push_button_status_component = {
   .fmi2BooleanVars = {
-    fmi2False /*booleanExpression1._y*/,
-    fmi2False /*booleanExpression2._y*/,
+    fmi2False /*booleanValue1._active*/,
     fmi2False /*digitalReadBoolean1._y*/,
   },
   .fmi2RealParameter = {
     0.002 /*synchronizeRealtime1._actualInterval*/,
+  },
+  .fmi2BooleanParameter = {
+    fmi2True /*booleanValue1._use_activePort*/,
   },
 };
 
@@ -59,11 +62,8 @@ static inline double om_mod(double x, double y)
 #include "MDDAVRDigital.h"
 
 static inline fmi2Boolean Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Digital_read(fmi2Component comp, void* om_port, fmi2Integer om_pin);
-static inline void Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Digital_write(fmi2Component comp, void* om_port, fmi2Integer om_pin, fmi2Boolean om_value);
 static inline void* Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Digital_InitRead_constructor(fmi2Component comp, fmi2Integer om_port, fmi2Integer om_pin);
 static inline void Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Digital_InitRead_destructor(fmi2Component comp, void* om_digital);
-static inline void* Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Digital_InitWrite_constructor(fmi2Component comp, fmi2Integer om_port, fmi2Integer om_pin);
-static inline void Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Digital_InitWrite_destructor(fmi2Component comp, void* om_digital);
 static inline void Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_RealTimeSynchronization_wait(fmi2Component comp, void* om_rt);
 static inline void* Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_RealTimeSynchronization_Init_constructor(fmi2Component comp, void* om_timer, fmi2Integer om_timerValue, fmi2Integer om_numTimerInterruptsPerCycle);
 static inline void Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_RealTimeSynchronization_Init_destructor(fmi2Component comp, void* om_rt);
@@ -76,10 +76,6 @@ static inline fmi2Boolean Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_
   om_b = MDD_avr_digital_pin_read(om_port, om_pin);
   return om_b;
 }
-static inline void Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Digital_write(fmi2Component comp, void* om_port, fmi2Integer om_pin, fmi2Boolean om_value)
-{
-  MDD_avr_digital_pin_write(om_port, om_pin, om_value);
-}
 static inline void* Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Digital_InitRead_constructor(fmi2Component comp, fmi2Integer om_port, fmi2Integer om_pin)
 {
   void* om_dig;
@@ -87,16 +83,6 @@ static inline void* Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Digita
   return om_dig;
 }
 static inline void Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Digital_InitRead_destructor(fmi2Component comp, void* om_digital)
-{
-  MDD_avr_digital_pin_close(om_digital);
-}
-static inline void* Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Digital_InitWrite_constructor(fmi2Component comp, fmi2Integer om_port, fmi2Integer om_pin)
-{
-  void* om_dig;
-  om_dig = MDD_avr_digital_pin_init(om_port, om_pin, fmi2True);
-  return om_dig;
-}
-static inline void Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Digital_InitWrite_destructor(fmi2Component comp, void* om_digital)
 {
   MDD_avr_digital_pin_close(om_digital);
 }
@@ -125,48 +111,47 @@ static inline void Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Timers_
   MDD_avr_timer_close(om_timer);
 }
 
-fmi2Component MDD_led_push_button_fmi2Instantiate(fmi2String name, fmi2Type ty, fmi2String GUID, fmi2String resources, const fmi2CallbackFunctions* functions, fmi2Boolean visible, fmi2Boolean loggingOn)
+fmi2Component MDD_push_button_status_fmi2Instantiate(fmi2String name, fmi2Type ty, fmi2String GUID, fmi2String resources, const fmi2CallbackFunctions* functions, fmi2Boolean visible, fmi2Boolean loggingOn)
 {
   static int initDone=0;
   if (initDone) {
     return NULL;
   }
-  return &MDD_led_push_button_component;
+  return &MDD_push_button_status_component;
 }
 
-fmi2Status MDD_led_push_button_fmi2SetupExperiment(fmi2Component comp, fmi2Boolean toleranceDefined, fmi2Real tolerance, fmi2Real startTime, fmi2Boolean stopTimeDefined, fmi2Real stopTime)
+fmi2Status MDD_push_button_status_fmi2SetupExperiment(fmi2Component comp, fmi2Boolean toleranceDefined, fmi2Real tolerance, fmi2Real startTime, fmi2Boolean stopTimeDefined, fmi2Real stopTime)
 {
   return fmi2OK;
 }
 
-fmi2Status MDD_led_push_button_fmi2EnterInitializationMode(fmi2Component comp)
+fmi2Status MDD_push_button_status_fmi2EnterInitializationMode(fmi2Component comp)
 {
   comp->extObjs[0] /* digitalReadBoolean1._digital EXTOBJ: Modelica_DeviceDrivers.EmbeddedTargets.AVR.Functions.Digital.InitRead */ = Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Digital_InitRead_constructor(comp, 2, 5);
-  comp->extObjs[2] /* synchronizeRealtime1._clock EXTOBJ: Modelica_DeviceDrivers.EmbeddedTargets.AVR.Functions.Timers.Timer */ = Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Timers_Timer_constructor(comp, 2, 4, fmi2False);
-  comp->extObjs[3] /* synchronizeRealtime1._sync EXTOBJ: Modelica_DeviceDrivers.EmbeddedTargets.AVR.Functions.RealTimeSynchronization.Init */ = Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_RealTimeSynchronization_Init_constructor(comp, comp->extObjs[2] /* synchronizeRealtime1._clock EXTOBJ: Modelica_DeviceDrivers.EmbeddedTargets.AVR.Functions.Timers.Timer */, 249, 2);
-  comp->extObjs[1] /* digitalWriteBoolean1._digital EXTOBJ: Modelica_DeviceDrivers.EmbeddedTargets.AVR.Functions.Digital.InitWrite */ = Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Digital_InitWrite_constructor(comp, 2, 2);
+  comp->extObjs[1] /* synchronizeRealtime1._clock EXTOBJ: Modelica_DeviceDrivers.EmbeddedTargets.AVR.Functions.Timers.Timer */ = Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Timers_Timer_constructor(comp, 1, 4, fmi2False);
+  comp->extObjs[2] /* synchronizeRealtime1._sync EXTOBJ: Modelica_DeviceDrivers.EmbeddedTargets.AVR.Functions.RealTimeSynchronization.Init */ = Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_RealTimeSynchronization_Init_constructor(comp, comp->extObjs[1] /* synchronizeRealtime1._clock EXTOBJ: Modelica_DeviceDrivers.EmbeddedTargets.AVR.Functions.Timers.Timer */, 249, 2);
   return fmi2OK;
 }
 
-fmi2Status MDD_led_push_button_fmi2ExitInitializationMode(fmi2Component comp)
+fmi2Status MDD_push_button_status_fmi2ExitInitializationMode(fmi2Component comp)
 {
   return fmi2OK;
 }
 
-static fmi2Status MDD_led_push_button_functionODE(fmi2Component comp)
+static fmi2Status MDD_push_button_status_functionODE(fmi2Component comp)
 {
 }
 
-static fmi2Status MDD_led_push_button_functionOutputs(fmi2Component comp)
+static fmi2Status MDD_push_button_status_functionOutputs(fmi2Component comp)
 {
-  Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_RealTimeSynchronization_wait(comp, comp->extObjs[3] /* synchronizeRealtime1._sync EXTOBJ: Modelica_DeviceDrivers.EmbeddedTargets.AVR.Functions.RealTimeSynchronization.Init */);Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_Digital_write(comp, comp->extObjs[1] /* digitalWriteBoolean1._digital EXTOBJ: Modelica_DeviceDrivers.EmbeddedTargets.AVR.Functions.Digital.InitWrite */, 2, comp->fmi2BooleanVars[2] /* digitalReadBoolean1._y DISCRETE */);
+  Modelica__DeviceDrivers_EmbeddedTargets_AVR_Functions_RealTimeSynchronization_wait(comp, comp->extObjs[2] /* synchronizeRealtime1._sync EXTOBJ: Modelica_DeviceDrivers.EmbeddedTargets.AVR.Functions.RealTimeSynchronization.Init */);
 }
 
-fmi2Status MDD_led_push_button_fmi2DoStep(fmi2Component comp, fmi2Real currentCommunicationPoint, fmi2Real communicationStepSize, fmi2Boolean noSetFMUStatePriorToCurrentPoint)
+fmi2Status MDD_push_button_status_fmi2DoStep(fmi2Component comp, fmi2Real currentCommunicationPoint, fmi2Real communicationStepSize, fmi2Boolean noSetFMUStatePriorToCurrentPoint)
 {
   comp->currentTime = currentCommunicationPoint;
   /* TODO: Calculate time/state-dependent variables here... */
-  MDD_led_push_button_functionOutputs(comp);
+  MDD_push_button_status_functionOutputs(comp);
   return fmi2OK;
 }
 
@@ -182,14 +167,14 @@ int main(int argc, char **argv)
   .componentEnvironment = NULL
   };
 
-  fmi2Component comp = MDD_led_push_button_fmi2Instantiate("", fmi2CoSimulation, "", "", &cbf, fmi2False, fmi2False);
+  fmi2Component comp = MDD_push_button_status_fmi2Instantiate("", fmi2CoSimulation, "", "", &cbf, fmi2False, fmi2False);
   if (comp==NULL) {
     return 1;
   }
-  MDD_led_push_button_fmi2SetupExperiment(comp, fmi2False, 0.0, 0.0, fmi2False, 1.0);
-  MDD_led_push_button_fmi2EnterInitializationMode(comp);
+  MDD_push_button_status_fmi2SetupExperiment(comp, fmi2False, 0.0, 0.0, fmi2False, 1.0);
+  MDD_push_button_status_fmi2EnterInitializationMode(comp);
   // Set start-values? Nah...
-  MDD_led_push_button_fmi2ExitInitializationMode(comp);
+  MDD_push_button_status_fmi2ExitInitializationMode(comp);
   
   double currentTime = 0.0;
   double h = 0.002;
@@ -202,7 +187,7 @@ int main(int argc, char **argv)
       // fmi2SetReal(m, ..., 1, &y2);
   
     //call slave and check status
-    status = MDD_led_push_button_fmi2DoStep(comp, currentTime, h, fmi2True);
+    status = MDD_push_button_status_fmi2DoStep(comp, currentTime, h, fmi2True);
     switch (status) {
       case fmi2Discard:
       case fmi2Error:
